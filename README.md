@@ -1,4 +1,2 @@
-# 工程简介
-
-# 延伸阅读
-
+# ShardingSphereDemo
+有关ShardingSphere-JDBC的配置demo
