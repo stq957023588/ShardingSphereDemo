@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fool.shardingspheredemo.mappers.OrderMapper">
+
+    <resultMap id="BaseResultMap" type="com.fool.shardingspheredemo.domain.Order">
+        <id property="id" column="ID" jdbcType="BIGINT"/>
+        <result property="number" column="NUMBER" jdbcType="VARCHAR"/>
+        <result property="totalPrice" column="TOTAL_PRICE" jdbcType="DECIMAL"/>
+        <result property="state" column="STATE" jdbcType="INTEGER"/>
+        <result property="createTime" column="CREATE_TIME" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,number,total_price,state,create_time
+    </sql>
+
+    <insert id="insert">
+        insert into `order`(id,`number`, total_price)
+        values (#{id,jdbcType=BIGINT},#{number,jdbcType=VARCHAR}, #{totalPrice,jdbcType=DECIMAL})
+    </insert>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long"
+            resultType="com.fool.shardingspheredemo.domain.Order">
+        select *
+        from `order`
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+    <select id="selectAll" resultType="com.fool.shardingspheredemo.domain.Order">
+        select *
+        from `order`
+    </select>
+    <select id="selectByNumbers" resultType="com.fool.shardingspheredemo.domain.Order">
+        select * from `order` where `number` in
+        <foreach collection="numbers" item="number" separator="," open="(" close=")">
+            #{number,jdbcType=VARCHAR}
+        </foreach>
+    </select>
+    <select id="selectById" resultType="com.fool.shardingspheredemo.domain.Order">
+        select <include refid="Base_Column_List"/> from `order` where id = #{id,jdbcType=BIGINT}
+    </select>
+
+</mapper>

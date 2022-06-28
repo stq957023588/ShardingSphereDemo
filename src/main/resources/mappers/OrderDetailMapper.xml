@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fool.shardingspheredemo.mappers.OrderDetailMapper">
+
+    <resultMap id="BaseResultMap" type="com.fool.shardingspheredemo.domain.OrderDetail">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="orderId" column="order_id" jdbcType="BIGINT"/>
+        <result property="productId" column="product_id" jdbcType="INTEGER"/>
+        <result property="quantity" column="quantity" jdbcType="OTHER"/>
+        <result property="unitPrice" column="unit_price" jdbcType="DECIMAL"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,order_id,product_id,
+        quantity,unit_price,create_time
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from order_detail
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+    <select id="selectByOrderIdList" resultType="com.fool.shardingspheredemo.domain.OrderDetail">
+        select od.*
+        from order_detail od
+        join `order` o on od.order_id = o.id
+        where
+        <foreach collection="orderIds" item="orderId" separator="," open=" o.id in (" close=")">
+            #{orderId,jdbcType=BIGINT}
+        </foreach>
+    </select>
+    <select id="selectByOrderId" resultType="com.fool.shardingspheredemo.domain.OrderDetail">
+        select od.*
+        from order_detail od
+                 join order o on od.order_id = o.id
+        where o.id = #{orderId,jdbcType=BIGINT}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete
+        from order_detail
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+    <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.fool.shardingspheredemo.domain.OrderDetail"
+            useGeneratedKeys="true">
+        insert into order_detail
+        ( id, order_id, product_id
+        , quantity, unit_price, create_time)
+        values ( #{id,jdbcType=INTEGER}, #{orderId,jdbcType=INTEGER}, #{productId,jdbcType=INTEGER}
+               , #{quantity,jdbcType=OTHER}, #{unitPrice,jdbcType=DECIMAL}, #{createTime,jdbcType=TIMESTAMP}) )
+    </insert>
+    <insert id="insertSelective" keyColumn="id" keyProperty="id"
+            parameterType="com.fool.shardingspheredemo.domain.OrderDetail" useGeneratedKeys="true">
+        insert into order_detail
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="orderId != null">order_id,</if>
+            <if test="productId != null">product_id,</if>
+            <if test="quantity != null">quantity,</if>
+            <if test="unitPrice != null">unit_price,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id,jdbcType=INTEGER},</if>
+            <if test="orderId != null">#{orderId,jdbcType=INTEGER},</if>
+            <if test="productId != null">#{productId,jdbcType=INTEGER},</if>
+            <if test="quantity != null">#{quantity,jdbcType=OTHER},</if>
+            <if test="unitPrice != null">#{unitPrice,jdbcType=DECIMAL},</if>
+            <if test="createTime != null">#{createTime,jdbcType=TIMESTAMP},</if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.fool.shardingspheredemo.domain.OrderDetail">
+        update order_detail
+        <set>
+            <if test="orderId != null">
+                order_id = #{orderId,jdbcType=INTEGER},
+            </if>
+            <if test="productId != null">
+                product_id = #{productId,jdbcType=INTEGER},
+            </if>
+            <if test="quantity != null">
+                quantity = #{quantity,jdbcType=OTHER},
+            </if>
+            <if test="unitPrice != null">
+                unit_price = #{unitPrice,jdbcType=DECIMAL},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.fool.shardingspheredemo.domain.OrderDetail">
+        update order_detail
+        set order_id    = #{orderId,jdbcType=INTEGER},
+            product_id  = #{productId,jdbcType=INTEGER},
+            quantity    = #{quantity,jdbcType=OTHER},
+            unit_price  = #{unitPrice,jdbcType=DECIMAL},
+            create_time = #{createTime,jdbcType=TIMESTAMP}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+</mapper>

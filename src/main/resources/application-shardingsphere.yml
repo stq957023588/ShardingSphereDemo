@@ -1,0 +1,171 @@
+spring:
+  shardingsphere:
+    props:
+      sql-show: true # 打印 SQL
+    # 内存模式,(其他模式: 单机模式,集群模式)
+    mode:
+      type: Memory
+    datasource:
+      names: sharding00,sharding01,xxxxxxxxxxxxxxx,read00,read01,asafwq
+      read00:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://127.0.0.1:3305/sharding_00?allowPublicKeyRetrieval=true
+        username: root
+        password: 123456
+      xxxxxxxxxxxxxxx:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://127.0.0.1:3306/sharding_default?allowPublicKeyRetrieval=true
+        username: root
+        password: 123456
+      asafwq:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://127.0.0.1:3306/sharding_default2?allowPublicKeyRetrieval=true
+        username: root
+        password: 123456
+      read01:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://127.0.0.1:3305/sharding_01?allowPublicKeyRetrieval=true
+        username: root
+        password: 123456
+      sharding00:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://127.0.0.1:3306/sharding_00?allowPublicKeyRetrieval=true
+        username: root
+        password: 123456
+      sharding01:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://127.0.0.1:3306/sharding_01?allowPublicKeyRetrieval=true
+        username: root
+        password: 123456
+    rules:
+      encrypt:
+        tables:
+          user:
+            query-with-cipher-column: true
+            columns:
+              password:
+                cipher-column: password
+                encryptor-name: aes_encryptor
+        encryptors:
+          aes_encryptor:
+            type: AES
+            props:
+              aes-key-value: 123456abc
+      readwrite-splitting:
+        data-sources:
+          rws01:
+            load-balancer-name: normal
+            type: Static
+            props:
+              write-data-source-name: sharding01
+              read-data-source-names: read01
+          rws00:
+            load-balancer-name: normal
+            type: Static
+            props:
+              write-data-source-name: sharding00
+              read-data-source-names: read00
+        load-balancers:
+          normal:
+            type: RANDOM
+            props:
+              aaa: 0
+      sharding:
+
+        binding-tables:
+          - order,order_detail
+        tables:
+          user:
+            actual-data-nodes: rws00.user_0$->{[0,2]},rws01.user_0$->{[1,3]}
+            database_strategy:
+              standard:
+                sharding-column: id
+                sharding-algorithm-name: mod2
+            table-strategy:
+              standard:
+                sharding-column: id
+                sharding-algorithm-name: mod4
+#            key-generate-strategy:
+#              column: id
+#              key-generator-name: redis-user
+          order_detail:
+            actual-data-nodes: rws00.order_detail_0$->{[0,2]},rws01.order_detail_0$->{[1,3]}
+            database_strategy:
+              standard:
+                sharding-column: order_id
+                sharding-algorithm-name: mod2
+            table-strategy:
+              standard:
+                sharding-column: order_id
+                sharding-algorithm-name: mod4
+#            key-generate-strategy:
+#              column: id
+#              key-generator-name: redis-order-detail
+          order:
+            actual-data-nodes: rws00.order_0$->{[0,2]},rws01.order_0$->{[1,3]}
+            database-strategy:
+              standard:
+                sharding-column: id
+                sharding-algorithm-name: mod2
+            table-strategy:
+              standard:
+                sharding-column: id
+                sharding-algorithm-name: mod4
+        #            key-generate-strategy:
+        #              column: id
+        #              key-generator-name: redis-order
+        sharding-algorithms:
+          hash-mod2:
+            type: HASH_MOD
+            props:
+              sharding-count: 2
+          hash-mod4:
+            type: HASH_MOD
+            props:
+              sharding-count: 4
+          mod2:
+            type: MOD
+            props:
+              sharding-count: 2
+          mod4:
+            type: MOD
+            props:
+              sharding-count: 4
+        key-generators:
+          #自定义分布式key
+#          redis-order-detail:
+#            type: REDIS
+#            props:
+#              redis-key: ORDER-DETAIL-KEY
+#          redis-user:
+#            type: REDIS
+#            props:
+#              redis-key: USER-KEY
+#          redis-order:
+#            type: REDIS
+#            props:
+#              redis-key: ORDER-KEY
+#          redis:
+#            type: REDIS
+#            props:
+#              redis-key: FOOL_REDIS_KEY
+          cos-snow:
+            type: COSID_SNOWFLAKE
+            props:
+              as-string: false
+          cos-id:
+            type: COSID
+            props:
+              as-string: false
+              id-name: __fool__
+          snow1:
+            type: SNOWFLAKE
+            props:
+              max-vibration-offset: 3
+
