@@ -1,0 +1,2 @@
+# ShardingSphereDemo
+有关ShardingSphere-JDBC的配置demo
